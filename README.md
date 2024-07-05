@@ -1,3 +1,5 @@
+Gold-Alert with Line FlEX MESSAGE Use Messaging API
+
 STEP 1
 
   Config
