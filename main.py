@@ -32,7 +32,7 @@ def Gold():
         if status_change_span:
             data["statusChange"] = "ทองขึ้น"  # Assuming "ทองขึ้น"
         else:
-            status_change_span = rows[3].find("span", class_="img-down") #เช็คว่าค่าขึ้นหรือลง
+            status_change_span = rows[3].find("span", class_="css-sprite-down") #เช็คว่าค่าขึ้นหรือลง
             if status_change_span:
                 data["statusChange"] = "ทองลง"  # Assuming "ทองลง"
         
