@@ -1,22 +1,35 @@
-Step 1 Add .env file. In file .env.example
+STEP 1
 
-  Put "TO" As Your user ID
-  Put "AUTHORIZATION" As Channel access token
+  Config
+  
+  .env file. In file .env.example
 
-  Save file name looklike .env
+    : Put "TO" As Your user ID
+  
+    : Put "AUTHORIZATION" As Channel access token
 
-Step 2 Run_Service_With
+    : Save file name looklike .env
+  
+STEP 2
 
   Dokcer
+  
     : cd Gold-Alert
-		: docker build -t gold-alert .
+    
+    : docker build -t gold-alert .
+    
     : docker run -d --restart unless-stopeed --name gold-alert gold-alert
+
+  OR
     
   python
+  
     : cd Gold-Alert
+    
     : pip install -r requirements.txt
+    
     : python main.py OR python3 main.py
 
-Reference Price Gold at https://ทองคำราคา.com/
+Reference Gold Price at https://ทองคำราคา.com/
 
 This is first Project for me Thank.
