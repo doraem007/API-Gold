@@ -71,7 +71,7 @@ def main(data):
                     "type": "bubble",
                     "hero": {
                         "type": "image",
-                        "url": "https://i.postimg.cc/3xxWh7Ln/bullion-1744773-1280.jpg",
+                        "url": "https://cdn.pixabay.com/photo/2014/11/01/22/33/gold-513062_1280.jpg",
                         "size": "full",
                         "aspectRatio": "20:13",
                         "aspectMode": "cover"
