@@ -9,7 +9,7 @@ Step 2 Run_Service_With
 
   Dokcer
     : cd Gold-Alert
-    : docker build -t gold-alert .
+		: docker build -t gold-alert .
     : docker run -d --restart unless-stopeed --name gold-alert gold-alert
     
   python
