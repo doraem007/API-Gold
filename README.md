@@ -12,12 +12,16 @@ STEP 1
   
 STEP 2
 
+  Add url API to Line-Webhook 
+
+STEP 3
+
   Dokcer
   
     : cd Gold-Alert
     
     : docker compose up --build -d
-    
+
 
 Reference Gold Price at https://ทองคำราคา.com/
 
