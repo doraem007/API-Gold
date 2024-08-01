@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import requests
 import json
 import time
+import mysql.connector
 
 def Gold():
     Gold_Url = "https://xn--42cah7d0cxcvbbb9x.com/"
@@ -28,14 +29,14 @@ def Gold():
             data["ornamentBuy"] = ornament_sell_td[1].text.strip()
 
     if len(rows) > 3:
-        status_change_span = rows[3].find("span", class_="css-sprite-up")#เช็คว่าค่าขึ้นหรือลง
+        status_change_span = rows[3].find("span", class_="css-sprite-up")
         if status_change_span:
-            data["statusChange"] = "ทองขึ้น"  # Assuming "ทองขึ้น"
+            data["statusChange"] = "ทองขึ้น"
         else:
-            status_change_span = rows[3].find("span", class_="css-sprite-down") #เช็คว่าค่าขึ้นหรือลง
+            status_change_span = rows[3].find("span", class_="css-sprite-down")
             if status_change_span:
-                data["statusChange"] = "ทองลง"  # Assuming "ทองลง"
-        
+                data["statusChange"] = "ทองลง"
+
         today_change_td = rows[3].find_all("td")
         if len(today_change_td) >= 3:
             data["todayChange"] = today_change_td[2].text.strip()
@@ -49,11 +50,18 @@ def Gold():
 
     return data
 
-def main(data):
-    
+def get_db_connection():
+    return mysql.connector.connect(
+        host=os.getenv('MYSQL_HOST'),
+        port=os.getenv('MYSQL_PORT'),
+        user=os.getenv('MYSQL_USER'),
+        password=os.getenv('MYSQL_PASSWORD'),
+        database=os.getenv('MYSQL_DATABASE')
+    )
+
+def send_message(user_id, data):
     load_dotenv()
 
-    TO = os.getenv('TO')
     AUTHORIZATION = os.getenv('AUTHORIZATION')
     colorCode = "#666666"
     if data.get("statusChange") == "ทองขึ้น":
@@ -62,7 +70,7 @@ def main(data):
         colorCode = "#e03b24"
 
     bubble_json = {
-        "to": TO,
+        "to": user_id,
         "messages": [
             {
                 "type": "flex",
@@ -252,15 +260,20 @@ def main(data):
 
     print(response.status_code)
     print(response.text)
-    
 
 def main_loop():
     previous_data = None
+    conn = get_db_connection()
+    cursor = conn.cursor()
     while True:
         data = Gold()
         if data != previous_data:
-            main(data)
+            cursor.execute('SELECT user_id FROM users')
+            user_ids = cursor.fetchall()
+            for (user_id,) in user_ids:
+                send_message(user_id, data)
             previous_data = data
         time.sleep(60)  # Sleep for 1 minute
-        
-main_loop()
+
+if __name__ == "__main__":
+    main_loop()
