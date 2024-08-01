@@ -16,7 +16,7 @@ STEP 2
   
     : cd Gold-Alert
     
-    : docker compose up --build -d --restart=always
+    : docker compose up --build -d
     
 
 Reference Gold Price at https://ทองคำราคา.com/
