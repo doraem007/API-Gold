@@ -279,6 +279,7 @@ def main_loop():
     conn = get_db_connection()
     cursor = conn.cursor()
     while True:
+        print("Tick")
         data = Gold()
         if data != previous_data:
             cursor.execute('SELECT user_id FROM users')
@@ -286,7 +287,6 @@ def main_loop():
             for (user_id,) in user_ids:
                 send_message(user_id, data)
             previous_data = data
-        print("Tick")
         time.sleep(60)  # Sleep for 1 minute
 
 if __name__ == "__main__":
