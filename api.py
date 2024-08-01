@@ -4,7 +4,7 @@ from typing import List
 import mysql.connector
 import os
 
-app = FastAPI()
+app = FastAPI(docs_url="/documentation", redoc_url=None)
 
 # เชื่อมต่อกับฐานข้อมูล MySQL
 def get_db_connection():
