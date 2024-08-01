@@ -279,7 +279,6 @@ def main_loop():
     conn = get_db_connection()
     cursor = conn.cursor()
     while True:
-        print("Tick")
         data = Gold()
         if data != previous_data:
             cursor.execute('SELECT user_id FROM users')
