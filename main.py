@@ -286,6 +286,7 @@ def main_loop():
             for (user_id,) in user_ids:
                 send_message(user_id, data)
             previous_data = data
+        print("Tick")
         time.sleep(60)  # Sleep for 1 minute
 
 if __name__ == "__main__":
