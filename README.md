@@ -5,8 +5,6 @@ STEP 1
   Config
   
   .env file. In file .env.example
-
-    : Put "TO" As Your user ID
   
     : Put "AUTHORIZATION" As Channel access token
 
@@ -18,19 +16,8 @@ STEP 2
   
     : cd Gold-Alert
     
-    : docker build -t gold-alert .
+    : docker compose up --build -d --restart=always
     
-    : docker run -d --restart unless-stopeed --name gold-alert gold-alert
-
-  OR
-    
-  python
-  
-    : cd Gold-Alert
-    
-    : pip install -r requirements.txt
-    
-    : python main.py OR python3 main.py
 
 Reference Gold Price at https://ทองคำราคา.com/
 

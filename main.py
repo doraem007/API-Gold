@@ -6,7 +6,6 @@ import json
 import time
 import mysql.connector
 
-# โหลดตัวแปรจาก .env เพียงครั้งเดียว
 load_dotenv()
 
 def Gold():
