@@ -6,6 +6,9 @@ import json
 import time
 import mysql.connector
 
+# โหลดตัวแปรจาก .env เพียงครั้งเดียว
+load_dotenv()
+
 def Gold():
     Gold_Url = "https://xn--42cah7d0cxcvbbb9x.com/"
     response = requests.get(Gold_Url)
@@ -27,19 +30,30 @@ def Gold():
         if len(ornament_sell_td) >= 3:
             data["ornamentSell"] = ornament_sell_td[2].text.strip()
             data["ornamentBuy"] = ornament_sell_td[1].text.strip()
+    
+    status_row = soup.find("td", class_="em bg-em al-r")
+    if status_row:
+        status_change_span = status_row.find("span", class_="css-sprite-up")
+        if status_change_span:
+            data["statusChange"] = "ทองขึ้น"
+        else:
+            status_change_span = status_row.find("span", class_="css-sprite-down")
+            if status_change_span:
+                data["statusChange"] = "ทองลง"
 
     if len(rows) > 3:
         status_change_span = rows[3].find("span", class_="css-sprite-up")
         if status_change_span:
-            data["statusChange"] = "ทองขึ้น"
+            data["w"] = "ท"
         else:
             status_change_span = rows[3].find("span", class_="css-sprite-down")
             if status_change_span:
-                data["statusChange"] = "ทองลง"
+                data["w"] = "ทง"
 
         today_change_td = rows[3].find_all("td")
         if len(today_change_td) >= 3:
             data["todayChange"] = today_change_td[2].text.strip()
+            
 
     if len(rows) > 4:
         updated_date_td = rows[4].find_all("td")
@@ -60,8 +74,6 @@ def get_db_connection():
     )
 
 def send_message(user_id, data):
-    load_dotenv()
-
     AUTHORIZATION = os.getenv('AUTHORIZATION')
     colorCode = "#666666"
     if data.get("statusChange") == "ทองขึ้น":
@@ -252,14 +264,16 @@ def send_message(user_id, data):
         'Authorization': f'Bearer {AUTHORIZATION}'
     }
 
-    response = requests.post(
-        'https://api.line.me/v2/bot/message/push',
-        headers=headers,
-        data=json.dumps(bubble_json)
-    )
-
-    print(response.status_code)
-    print(response.text)
+    try:
+        response = requests.post(
+            'https://api.line.me/v2/bot/message/push',
+            headers=headers,
+            data=json.dumps(bubble_json)
+        )
+        print(response.status_code)
+        print(response.text)
+    except requests.RequestException as e:
+        print(f"Error sending message: {e}")
 
 def main_loop():
     previous_data = None
@@ -273,6 +287,7 @@ def main_loop():
             for (user_id,) in user_ids:
                 send_message(user_id, data)
             previous_data = data
+        print("Tick")
         time.sleep(60)  # Sleep for 1 minute
 
 if __name__ == "__main__":
