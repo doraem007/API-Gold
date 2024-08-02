@@ -16,10 +16,12 @@ def get_db_connection():
         database=os.getenv('MYSQL_DATABASE')
     )
 
+# Ensure the table exists
 conn = get_db_connection()
 cursor = conn.cursor()
 cursor.execute('''CREATE TABLE IF NOT EXISTS users (user_id VARCHAR(255) PRIMARY KEY)''')
 conn.commit()
+conn.close()
 
 class EventSource(BaseModel):
     userId: str
@@ -38,11 +40,22 @@ class WebhookRequest(BaseModel):
 async def webhook(request: Request):
     data = await request.json()
     webhook_request = WebhookRequest(**data)
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
     for event in webhook_request.events:
         if event.type == "follow":
             user_id = event.source.userId
-            # บันทึก user_id ในฐานข้อมูล
-            cursor.execute('INSERT IGNORE INTO users (user_id) VALUES (%s)', (user_id,))
-            conn.commit()
-            print(f"New follower: {user_id}")
+            try:
+                cursor.execute('INSERT IGNORE INTO users (user_id) VALUES (%s)', (user_id,))
+                conn.commit()
+                print(f"New follower: {user_id}")
+            except mysql.connector.Error as err:
+                print(f"Error: {err}")
+                conn.rollback()
+    
+    cursor.close()
+    conn.close()
+
     return {"status": "success"}
