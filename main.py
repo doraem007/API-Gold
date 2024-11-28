@@ -275,19 +275,22 @@ def send_message(user_id, data):
         print(f"Error sending message: {e}")
 
 def main_loop():
+    import datetime
+
     previous_data = None
-    conn = get_db_connection()
-    cursor = conn.cursor()
     while True:
-        data = Gold()
-        if data != previous_data:
-            cursor.execute('SELECT user_id FROM users')
-            user_ids = cursor.fetchall()
-            for (user_id,) in user_ids:
-                send_message(user_id, data)
-            previous_data = data
-        print("Tick")
-        time.sleep(60)  # Sleep for 1 minute
+        now = datetime.datetime.now()
+        # ตรวจสอบว่าปัจจุบันเป็นเวลา 6 โมงเย็นหรือไม่
+        if now.hour == 18 and now.minute == 0:
+            data = Gold()
+            if data != previous_data:
+                main(data)
+                previous_data = data
+            # รอ 1 นาทีเพื่อป้องกันการส่งข้อมูลซ้ำในเวลาเดียวกัน
+            time.sleep(60)
+        else:
+            # ตรวจสอบเวลาอีกครั้งในทุก 30 วินาที
+            time.sleep(30)
 
 if __name__ == "__main__":
     main_loop()
