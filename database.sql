@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: mysql
--- Generation Time: Aug 01, 2024 at 10:55 AM
+-- Generation Time: Nov 28, 2024 at 10:58 PM
 -- Server version: 9.0.1
 -- PHP Version: 8.2.8
 
@@ -20,8 +20,19 @@ SET time_zone = "+00:00";
 --
 -- Database: `users_db`
 --
-CREATE DATABASE IF NOT EXISTS `users_db` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
-USE `users_db`;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `gold_history`
+--
+
+CREATE TABLE `gold_history` (
+  `id` int NOT NULL,
+  `value` varchar(255) NOT NULL,
+  `quantity` int NOT NULL,
+  `time` timestamp NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -36,8 +47,22 @@ CREATE TABLE `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
+-- Dumping data for table `users`
+--
+
+INSERT INTO `users` (`id`, `user_id`, `created_at`) VALUES
+(1, 'U37e8d5c03be6f2c02dcd496e3f3ab292', '2024-08-02 16:07:30'),
+(8, 'U25331d7e77e3b469b03b3dd6ae75aefb', '2024-08-05 08:45:02');
+
+--
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `gold_history`
+--
+ALTER TABLE `gold_history`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `users`
@@ -50,10 +75,16 @@ ALTER TABLE `users`
 --
 
 --
+-- AUTO_INCREMENT for table `gold_history`
+--
+ALTER TABLE `gold_history`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -4,11 +4,16 @@ from bs4 import BeautifulSoup
 import requests
 import json
 import time
+import datetime
 import mysql.connector
 
+# โหลด environment variables
 load_dotenv()
 
 def Gold():
+    """
+    ดึงข้อมูลราคาทองจากเว็บไซต์
+    """
     Gold_Url = "https://xn--42cah7d0cxcvbbb9x.com/"
     response = requests.get(Gold_Url)
     soup = BeautifulSoup(response.text, "html.parser")
@@ -29,30 +34,19 @@ def Gold():
         if len(ornament_sell_td) >= 3:
             data["ornamentSell"] = ornament_sell_td[2].text.strip()
             data["ornamentBuy"] = ornament_sell_td[1].text.strip()
-    
-    status_row = soup.find("td", class_="em bg-em al-r")
-    if status_row:
-        status_change_span = status_row.find("span", class_="css-sprite-up")
-        if status_change_span:
-            data["statusChange"] = "ทองขึ้น"
-        else:
-            status_change_span = status_row.find("span", class_="css-sprite-down")
-            if status_change_span:
-                data["statusChange"] = "ทองลง"
 
     if len(rows) > 3:
         status_change_span = rows[3].find("span", class_="css-sprite-up")
         if status_change_span:
-            data["w"] = "ท"
+            data["statusChange"] = "ทองขึ้น"
         else:
             status_change_span = rows[3].find("span", class_="css-sprite-down")
             if status_change_span:
-                data["w"] = "ทง"
+                data["statusChange"] = "ทองลง"
 
         today_change_td = rows[3].find_all("td")
         if len(today_change_td) >= 3:
             data["todayChange"] = today_change_td[2].text.strip()
-            
 
     if len(rows) > 4:
         updated_date_td = rows[4].find_all("td")
@@ -64,15 +58,48 @@ def Gold():
     return data
 
 def get_db_connection():
-    return mysql.connector.connect(
-        host=os.getenv('MYSQL_HOST'),
-        port=os.getenv('MYSQL_PORT'),
-        user=os.getenv('MYSQL_USER'),
-        password=os.getenv('MYSQL_PASSWORD'),
-        database=os.getenv('MYSQL_DATABASE')
-    )
+    """
+    สร้างการเชื่อมต่อฐานข้อมูล
+    """
+    try:
+        return mysql.connector.connect(
+            host=os.getenv('MYSQL_HOST'),
+            port=os.getenv('MYSQL_PORT'),
+            user=os.getenv('MYSQL_USER'),
+            password=os.getenv('MYSQL_PASSWORD'),
+            database=os.getenv('MYSQL_DATABASE')
+        )
+    except mysql.connector.Error as e:
+        print(f"Error connecting to the database: {e}")
+        return None
+
+def save_to_gold_history(conn, data):
+    """
+    บันทึกข้อมูลราคาทองลงในตาราง gold_history
+    """
+    try:
+        cursor = conn.cursor()
+        query = """
+            INSERT INTO gold_history (value, quantity, time)
+            VALUES (%s, %s, %s)
+        """
+        value = f"Bar Buy: {data.get('barBuy', '')}, Bar Sell: {data.get('barSell', '')}, " \
+                f"Ornament Buy: {data.get('ornamentBuy', '')}, Ornament Sell: {data.get('ornamentSell', '')}"
+        quantity = 1  # สามารถปรับให้เหมาะสมได้
+        time = datetime.datetime.now()
+
+        cursor.execute(query, (value, quantity, time))
+        conn.commit()
+        print("Saved to gold_history")
+    except mysql.connector.Error as e:
+        print(f"Error saving to gold_history: {e}")
+    finally:
+        cursor.close()
 
 def send_message(user_id, data):
+    """
+    ส่งข้อความแจ้งเตือนผ่าน LINE Messaging API
+    """
     AUTHORIZATION = os.getenv('AUTHORIZATION')
     colorCode = "#666666"
     if data.get("statusChange") == "ทองขึ้น":
@@ -275,22 +302,39 @@ def send_message(user_id, data):
         print(f"Error sending message: {e}")
 
 def main_loop():
-    import datetime
-
+    """
+    วนลูปเพื่อตรวจสอบและประมวลผลข้อมูลราคาทอง
+    """
     previous_data = None
-    while True:
-        now = datetime.datetime.now()
-        # ตรวจสอบว่าปัจจุบันเป็นเวลา 6 โมงเย็นหรือไม่
-        if now.hour == 18 and now.minute == 0:
-            data = Gold()
-            if data != previous_data:
-                main(data)
-                previous_data = data
-            # รอ 1 นาทีเพื่อป้องกันการส่งข้อมูลซ้ำในเวลาเดียวกัน
-            time.sleep(60)
-        else:
-            # ตรวจสอบเวลาอีกครั้งในทุก 30 วินาที
-            time.sleep(30)
+    conn = get_db_connection()
+    if not conn:
+        return
+
+    try:
+        cursor = conn.cursor()
+        while True:
+            now = datetime.datetime.now()
+            if now.hour == 18 and now.minute == 0:  # รันทุก 6 โมงเย็น
+                data = Gold()
+                if data and data != previous_data:
+                    # บันทึกข้อมูลลงใน gold_history
+                    save_to_gold_history(conn, data)
+
+                    # ส่งข้อความถึงผู้ใช้
+                    cursor.execute('SELECT user_id FROM users')
+                    for (user_id,) in cursor:
+                        send_message(user_id, data)
+
+                    previous_data = data
+
+                time.sleep(60)  # รอเพื่อหลีกเลี่ยงการรันซ้ำในนาทีเดียวกัน
+            else:
+                time.sleep(30)  # ตรวจสอบเวลาอีกครั้งทุก 30 วินาที
+    except Exception as e:
+        print(f"Error in main loop: {e}")
+    finally:
+        cursor.close()
+        conn.close()
 
 if __name__ == "__main__":
     main_loop()
